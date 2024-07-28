@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Templating</title>
+    <style>
+        html, body {
+            padding: 0;
+            margin: 0;
+        }
+        html {
+            --text-color: black;
+            --stroke-color: green;
+            overflow: hidden;
+        }
+        * {
+            box-sizing: border-box;
+        }
+        .container {
+            position: relative;
+            background-image: url("./bg_blue.png");
+            width: 822px;
+            height: 1122px;
+        }
+        .image {
+            position: absolute;
+
+        }
+        .name {
+            position: absolute;
+            font-family: 'Pirata One', serif;
+            color: var(--text-color);
+            font-size: 42px;
+            vertical-align: center;
+        }
+        .blue .name {
+            top: 103px;
+            left: 272px;
+        }
+        .red .name {
+            top: 99px;
+            left: 270px;
+        }
+        .textbox {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: absolute;
+            font-family: 'Pirata One', serif;
+            color: #856a53;
+            top: 860px;
+            left: 120px;
+            width: 590px;
+            height: 160px;
+            text-align: center;
+            line-height: 1.1em;
+            font-size: 60px;
+        }
+        .number {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: absolute;
+            color: #fcfcfc;
+            font-size: 153px;
+            height: 180px;
+            width: 180px;
+            vertical-align: center;
+            text-align: center;
+            font-family: "Super Mario 256", sans-serif;
+            text-shadow: rgba(0,0,0, 0.7) 10px 10px 20px;
+            -webkit-text-stroke: 5px var(--stroke-color);
+        }
+        .red .number {
+            top: 83px;
+            left:79px;
+        }
+        .blue .number {
+            top: 80px;
+            left:80px;
+        }
+        .red .infobar {
+            top: 425px;
+            left: 75px;
+        }
+        .blue .infobar {
+            top: 421px;
+            left: 76px;
+
+        }
+        .infobar {
+            position: absolute;
+            /*display: none;*/
+            width: 40px;
+            color: #C7BEA8; /* BG: #CFC8B3*/
+            line-height: 1.05;
+            font-size: 48px;
+        }
+        .infobar p {
+            margin-block-start: 0;
+            margin-block-end: 0;
+            font-family: 'Pirata One', serif;
+            text-align: center;
+        }
+
+        .guide {
+            position: absolute;
+            /*border-bottom: 5px solid #F0F;*/
+            box-sizing: content-box;
+            width: 100%;
+            height: 1px;
+            top: 800px;
+        }
+    </style>
+    <script type="application/javascript" src="https://github.com/niklasvh/html2canvas/releases/download/v1.4.1/html2canvas.js"></script>
+    <script type="application/javascript" src="FileSaver.js"></script>
+    <script type="application/javascript">
+        const CARDS = {
+            0: { name: 'Rats!',      desc: 'This round is a draw and put on hold.' },
+            1: { name: 'Princess',   desc: 'If your opponent plays the Prince, you win the game.' },
+            2: { name: 'Spy',        desc: 'Next round, your opponent reveals their card first.' },
+            3: { name: 'Assassin',   desc: 'The lowest strength wins.' },
+            4: { name: 'Ambassador', desc: 'Winning with this card counts as 2 victories.' },
+            5: { name: 'Sorcerer',   desc: 'Cancel the power of your opponent\'s card.' },
+            6: { name: 'General',    desc: 'Your next card gets +2 strength.' },
+            7: { name: 'Prince',     desc: 'You win the round.' },
+        };
+        const RED_CONFIG = {
+            text  : '#d40b13',
+            stroke: '#bc0506',
+            info  : '#D26A63',
+            art: {
+                0: { i: 'hamsters' , y: '-4px' },
+                1: { i: 'archer'   , y: '16px' },
+                2: { i: 'thief red', y: '6px' },
+                3: { i: 'assassin' , y: '32px' },
+                4: { i: 'scholar'  , y: '12px' },
+                5: { i: 'magician' , y: '12px' },
+                6: { i: 'berserker', y: '24px' },
+                7: { i: 'knight'   , },
+            }
+        };
+        const BLUE_CONFIG = {
+            text  : '#3870b5',
+            stroke: '#2e5e97',
+            info  : '#849CB4',
+            name  : {},
+            number: {},
+            art   : {
+                0: { i: 'rat'        , y: '10px' },
+                1: { i: 'healer'     , y: '20px' },
+                2: { i: 'thief blue' , y: '6px', flip: true },
+                3: { i: 'fighter'    , },
+                4: { i: 'bard'       , y: '6px' },
+                5: { i: 'shaman'     , y: '-12px'},
+                6: { i: 'mercenary'  , },
+                7: { i: 'warrior'    , },
+            }
+        };
+
+        const OUTCOMES = [
+            /*        0   1   2   3   4   5   6   7 */
+            /* 0 */ [' ',' ',' ',' ',' ','L',' ',' '],
+            /* 1 */ [' ',' ','L','W','L','L','L','W'],
+            /* 2 */ [' ','W',' ','W','L','L','L','L'],
+            /* 3 */ [' ','L','L',' ','W','L','W','L'],
+            /* 4 */ [' ','W','W','L',' ','L','L','L'],
+            /* 5 */ ['W','W','W','W','W',' ','L','L'],
+            /* 6 */ [' ','W','W','L','W','W',' ','L'],
+            /* 7 */ [' ','L','W','W','W','W','W',' '],
+        ];
+
+        function getRowColor(outcome, showBlue) {
+            const winner = showBlue ? BLUE_CONFIG : RED_CONFIG;
+            const loser =  showBlue ? RED_CONFIG : BLUE_CONFIG;
+            switch (outcome) {
+                case 'W':
+                    return winner.info;
+                case 'L':
+                    return loser.info;
+                default:
+                    return null;
+            }
+        }
+
+        function init() {
+            const root =      document.documentElement;
+            const container = document.querySelector('.container');
+            const number =    document.querySelector('.number');
+            const name =      document.querySelector('.name');
+            const textbox =   document.querySelector('.textbox');
+            const image =     document.querySelector('.image');
+            const infobar =   document.querySelector('.infobar');
+
+            function render(index, showBlue) {
+                const data = CARDS[index];
+                const config = showBlue ? BLUE_CONFIG : RED_CONFIG
+                let artConfig = (config.art)[index];
+                const artwork = artConfig.i;
+
+                root.style.setProperty("--text-color",   config.text);
+                root.style.setProperty("--stroke-color", config.stroke);
+                container.style.backgroundImage = `url("./bg_${showBlue ? 'blue' : 'red'}.png")`;
+                number.innerHTML = index;
+                name.innerHTML = data.name;
+                textbox.innerHTML = data.desc;
+                image.style.setProperty('top',  artConfig.y ?? 0);
+                image.style.setProperty('left', artConfig.x ?? 0);
+                image.style.setProperty('transform', artConfig.flip ? 'scaleX(-1)' : 'scaleX(1)');
+                image.src = `./art/${artwork}.png`;
+
+                if (showBlue) {
+                    container.classList.add('blue');
+                    container.classList.remove('red');
+                } else {
+                    container.classList.add('red');
+                    container.classList.remove('blue');
+                }
+
+                for (let opposingIndex = 0; opposingIndex < 8; opposingIndex++) {
+                    const element = infobar.querySelector(`.info-${opposingIndex}`);
+                    const rowOutcome = OUTCOMES[index][opposingIndex];
+                    const rowColor = getRowColor(rowOutcome, showBlue);
+                    element.style.setProperty('color', rowColor);
+                }
+            }
+
+            let current = 0;
+            let showBlue = false;
+
+            function delay(amount) {
+                return new Promise(resolve => {
+                    setTimeout(resolve, amount);
+                })
+            }
+            async function saveCurrent() {
+                return new Promise(async resolve => {
+                    const canvas = await html2canvas(container, { scale: 1 });
+                    // Export canvas as a blob
+                    canvas.toBlob(function(blob) {
+                        window.saveAs(blob, `${showBlue ? "blue" : "red"} ${current}.png`);
+                        resolve();
+                    });
+                })
+            }
+            function rerender() {
+                render(current, showBlue);
+            }
+            document.addEventListener('keydown', async (e) => {
+                if (e.key === "ArrowLeft") {
+                    if (current > 0) {
+                        current -= 1;
+                    }
+                    rerender();
+                } else if (e.key === "ArrowRight") {
+                    if (current < 7) {
+                        current += 1;
+                    }
+                    rerender();
+                } else if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+                    showBlue = !showBlue;
+                    rerender();
+                } else if (e.code === 'KeyS') {
+                    await saveCurrent();
+                } else if (e.code === 'KeyA') {
+                    const colors = [true, false];
+                    for (const color of colors) {
+                        showBlue = color;
+                        for (let i = 0; i < 8; i += 1) {
+                            current = i;
+                            rerender();
+                            await delay(100);
+                            await saveCurrent();
+                        }
+                    }
+                }
+            });
+            rerender();
+        }
+        document.addEventListener('DOMContentLoaded', init);
+
+    </script>
+</head>
+<body>
+    <div class="container">
+        <div class="number"></div>
+        <div class="name"></div>
+        <div class="textbox"></div>
+        <img src="./art/berserker.png" class="image">
+        <div class="infobar">
+            <p class="info-0">0</p>
+            <p class="info-1">1</p>
+            <p class="info-2">2</p>
+            <p class="info-3">3</p>
+            <p class="info-4">4</p>
+            <p class="info-5">5</p>
+            <p class="info-6">6</p>
+            <p class="info-7">7</p>
+        </div>
+        <div class="guide"></div>
+    </div>
+</body>
+</html>
