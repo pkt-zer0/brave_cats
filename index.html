@@ -12,19 +12,40 @@
             --text-color: black;
             --stroke-color: green;
             overflow: hidden;
+            font-family: 'Pirata One', serif;
         }
         * {
             box-sizing: border-box;
         }
         .container {
             position: relative;
-            background-image: url("./bg_blue.png");
+            background-color: #C7BEA8;
+            background-image: url("./bg_blank.png");
             width: 822px;
             height: 1122px;
         }
+        .cut {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            /*border: 2px solid red;*/
+            width: 750px;
+            height: 1050px;
+            top: 36px;
+            left: 36px;
+        }
+        .safe {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            /*border: 2px dashed blue;*/
+            width: 678px;
+            height: 978px;
+            top: 36px;
+            left: 36px;
+        }
         .image {
             position: absolute;
-
         }
         .name {
             position: absolute;
@@ -41,60 +62,65 @@
             top: 99px;
             left: 270px;
         }
-        .textbox {
-            display: flex;
+        .summary {
             align-items: center;
             justify-content: center;
-            position: absolute;
             font-family: 'Pirata One', serif;
-            color: #856a53;
-            top: 860px;
-            left: 120px;
-            width: 590px;
-            height: 160px;
+            color: var(--text-color);
+            -webkit-text-stroke: 5px var(--stroke-color);
+            top: 120px;
+            left: 0px;
+            width: 100%;
             text-align: center;
             line-height: 1.1em;
-            font-size: 60px;
+            font-size: 160px;
+            margin-top: -8px;
         }
-        .number {
+        .textbox {
             display: flex;
-            align-items: center;
+            flex-direction: column;
             justify-content: center;
-            position: absolute;
-            color: #fcfcfc;
-            font-size: 153px;
-            height: 180px;
-            width: 180px;
-            vertical-align: center;
+            flex-grow: 1;
+            color: #856a53;
+            top: 290px;
+            left: 0;
+            width: 100%;
+            min-height: 160px;
+            text-align: left;
+            line-height: 1.1em;
+            font-size: 64px;
+        }
+        .textbox > .row {
+            display: flex;
+            margin-block: 25px;
+            margin-left: 0;
+            margin-right: 0;
+            height: 132px;
+        }
+        .textbox p {
+            margin: 0;
+        }
+        .textbox p.num {
+            min-width: 64px;
+            align-content: center;
             text-align: center;
-            font-family: "Super Mario 256", sans-serif;
-            text-shadow: rgba(0,0,0, 0.7) 10px 10px 20px;
-            -webkit-text-stroke: 5px var(--stroke-color);
+            font-size: 96px;
+            color: var(--stroke-color);
+            border-right: 4px solid var(--stroke-color);
         }
-        .red .number {
-            top: 83px;
-            left:79px;
+        .textbox p.text {
+            align-content: center;
+            padding-left: 16px;
         }
-        .blue .number {
-            top: 80px;
-            left:80px;
+        .filler {
+            /*flex-grow: 1;*/
         }
-        .red .infobar {
-            top: 425px;
-            left: 75px;
-        }
-        .blue .infobar {
-            top: 421px;
-            left: 76px;
-
-        }
-        .infobar {
-            position: absolute;
-            /*display: none;*/
-            width: 40px;
-            color: #C7BEA8; /* BG: #CFC8B3*/
-            line-height: 1.05;
+        .pagenum {
+            align-self: center;
+            color: #B9A78C; /* BG: #ece3c4*/
             font-size: 48px;
+            margin-bottom: -8px;
+
         }
         .infobar p {
             margin-block-start: 0;
@@ -186,8 +212,6 @@
         function init() {
             const root =      document.documentElement;
             const container = document.querySelector('.container');
-            const number =    document.querySelector('.number');
-            const name =      document.querySelector('.name');
             const textbox =   document.querySelector('.textbox');
             const image =     document.querySelector('.image');
             const infobar =   document.querySelector('.infobar');
@@ -200,14 +224,12 @@
 
                 root.style.setProperty("--text-color",   config.text);
                 root.style.setProperty("--stroke-color", config.stroke);
-                container.style.backgroundImage = `url("./bg_${showBlue ? 'blue' : 'red'}.png")`;
-                number.innerHTML = index;
-                name.innerHTML = data.name;
-                textbox.innerHTML = data.desc;
+                // container.style.backgroundImage = `url("./bg_${showBlue ? 'blue' : 'red'}.png")`;
+                // textbox.innerHTML = data.desc;
                 image.style.setProperty('top',  artConfig.y ?? 0);
                 image.style.setProperty('left', artConfig.x ?? 0);
                 image.style.setProperty('transform', artConfig.flip ? 'scaleX(-1)' : 'scaleX(1)');
-                image.src = `./art/${artwork}.png`;
+                // image.src = `./art/${artwork}.png`;
 
                 if (showBlue) {
                     container.classList.add('blue');
@@ -283,20 +305,54 @@
 </head>
 <body>
     <div class="container">
-        <div class="number"></div>
-        <div class="name"></div>
-        <div class="textbox"></div>
-        <img src="./art/berserker.png" class="image">
-        <div class="infobar">
-            <p class="info-0">0</p>
-            <p class="info-1">1</p>
-            <p class="info-2">2</p>
-            <p class="info-3">3</p>
-            <p class="info-4">4</p>
-            <p class="info-5">5</p>
-            <p class="info-6">6</p>
-            <p class="info-7">7</p>
+        <div class="cut">
+            <div class="safe">
+                <div class="summary">-Summary-</div>
+                <div class="textbox">
+<!--
+                    <div class="row">
+                        <p class="num">0</p>
+                        <p class="text">This round is a draw and put on hold.</p>
+                    </div>
+                    <div class="row">
+                        <p class="num">1</p>
+                        <p class="text">If your opponent plays the Prince, you win the game.</p>
+                    </div>
+                    <div class="row">
+                        <p class="num">2</p>
+                        <p class="text">Next round, your opponent reveals their card first.</p>
+                    </div>
+                    <div class="row">
+                        <p class="num">3</p>
+                        <p class="text">The lowest strength wins.</p>
+                    </div>
+-->
+
+                    <div class="row">
+                        <p class="num">4</p>
+                        <p class="text">Winning with this card counts as 2 victories.</p>
+                    </div>
+                    <div class="row">
+                        <p class="num">5</p>
+                        <p class="text">Cancel the power of your opponent's card.</p>
+                    </div>
+                    <div class="row">
+                        <p class="num">6</p>
+                        <p class="text">Your next card gets +2 strength.</p>
+                    </div>
+                    <div class="row">
+                        <p class="num">7</p>
+                        <p class="text">You win the round.</p>
+                    </div>
+
+
+                </div>
+                <div class="filler"></div>
+                <div class="pagenum">(2 / 2)</div>
+            </div>
+
         </div>
+        <img class="image">
         <div class="guide"></div>
     </div>
 </body>
